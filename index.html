@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media savodxonligi — Viktorina</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #101820, #1d3557);
+    color: white;
+    min-height: 100vh;
+    padding: 15px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    text-align: center;
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    color: #cbd5e1;
+    margin-bottom: 20px;
+}
+
+.numbers {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.number {
+    height: 48px;
+    border: none;
+    border-radius: 10px;
+    background: #334155;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.number.active {
+    background: #f59e0b;
+    transform: scale(1.08);
+}
+
+.number.used {
+    background: #475569;
+    opacity: 0.45;
+}
+
+.spin {
+    border: none;
+    padding: 15px 35px;
+    border-radius: 30px;
+    background: #22c55e;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.spin:disabled {
+    background: #64748b;
+}
+
+.result-number {
+    font-size: 55px;
+    font-weight: bold;
+    min-height: 70px;
+    color: #facc15;
+}
+
+.question-box {
+    display: none;
+    background: white;
+    color: #111827;
+    border-radius: 18px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.question {
+    font-size: 19px;
+    font-weight: bold;
+    line-height: 1.5;
+    margin-bottom: 20px;
+}
+
+.cells {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 15px 0;
+}
+
+.letter {
+    width: 32px;
+    height: 38px;
+    border: 2px solid #94a3b8;
+    border-radius: 5px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.check {
+    border: none;
+    padding: 12px 25px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.message {
+    min-height: 30px;
+    margin-top: 12px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.correct {
+    background: #86efac !important;
+    border-color: #16a34a !important;
+}
+
+.wrong {
+    background: #fca5a5 !important;
+    border-color: #dc2626 !important;
+}
+
+.score {
+    margin-top: 20px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.finish {
+    display: none;
+    background: white;
+    color: #111827;
+    padding: 25px;
+    border-radius: 18px;
+    margin-top: 20px;
+}
+
+.restart {
+    border: none;
+    padding: 12px 25px;
+    background: #7c3aed;
+    color: white;
+    border-radius: 10px;
+    font-size: 17px;
+}
+
+@media(max-width: 500px) {
+    h1 {
+        font-size: 23px;
+    }
+
+    .numbers {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .number {
+        height: 42px;
+        font-size: 16px;
+    }
+
+    .letter {
+        width: 29px;
+        height: 35px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🧠 MEDIA SAVODXONLIGI</h1>
+<div class="subtitle">Viktorina — 18 ta savol</div>
+
+<div class="numbers" id="numbers"></div>
+
+<button class="spin" id="spinBtn" onclick="spin()">
+    🎯 AYLANTIRISH
+</button>
+
+<div class="result-number" id="resultNumber">?</div>
+
+<div class="question-box" id="questionBox">
+
+    <div class="question" id="question"></div>
+
+    <div class="cells" id="cells"></div>
+
+    <button class="check" onclick="checkAnswer()">
+        ✅ TEKSHIRISH
+    </button>
+
+    <div class="message" id="message"></div>
+
+</div>
+
+<div class="score">
+    Ball: <span id="score">0</span> / 18
+</div>
+
+<div class="finish" id="finish">
+    <h2>🎉 Viktorina tugadi!</h2>
+    <p>Sizning natijangiz:</p>
+    <h1 id="finalScore">0 / 18</h1>
+    <button class="restart" onclick="location.reload()">
+        🔄 QAYTADAN
+    </button>
+</div>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+    q: "“Axborotlashgan jamiyat” atamasini fanga kiritgan yapon olimining familiyasi?",
+    a: "Xayashi"
+},
+
+{
+    q: "Jamiyatni axborotlashtirish jarayonining “axborot izlash va unga ishlov berish vositalarini takomillashtirish” bosqichi qanday ataladi?",
+    a: "Kompyuterlashtirish"
+},
+
+{
+    q: "BMT qaysi yilni “Butun jahon axborot jamiyati yili” deb e’lon qilgan?",
+    a: "2006"
+},
+
+{
+    q: "“Axborotlashgan jamiyat” atamasi dastlab qaysi mamlakatda vujudga kelgan?",
+    a: "Yaponiya"
+},
+
+{
+    q: "“Gazeta” so‘zi qaysi tildan olingan?",
+    a: "Italyancha"
+},
+
+{
+    q: "“La Gazzette” nashrini tashkil etgan shaxsning familiyasi?",
+    a: "Renodo"
+},
+
+{
+    q: "Jurnalchilik tarixi boshlangan birinchi jurnalning nomi?",
+    a: "Journal des savants"
+},
+
+{
+    q: "Axborot qaysi turga bo‘linmaydi: fizik, texnik yoki iqtisodiy?",
+    a: "Fizik"
+},
+
+{
+    q: "Ma’lum tezlikda tasvirlarni almashtirish mahsuli qanday ataladi?",
+    a: "Animatsiya"
+},
+
+{
+    q: "Tizimga nisbatan yo‘nalishiga ko‘ra axborot oqimining turlari qanday ataladi (kiruvchi va ...)?",
+    a: "Chiquvchi"
+},
+
+{
+    q: "Kibernetikada axborot miqdori birligi sifatida qabul qilingan ikkilangan birlik?",
+    a: "Bit"
+},
+
+{
+    q: "Ta’lim jarayonida o‘qituvchi va o‘quvchi o‘rtasidagi asosiy jarayon qanday ataladi?",
+    a: "Muloqot"
+},
+
+{
+    q: "Yoshlikda olingan bilim nimaga o‘xshatilgan?",
+    a: "Naqsh"
+},
+
+{
+    q: "Media mahsulotning eng oliy maqsadga xizmat qiluvchi qadriyati nima?",
+    a: "Inson"
+},
+
+{
+    q: "Odamlar OAV orqali bilgan qarashlarini ko‘pchilikka tegishli deb hisoblashi qaysi nazariya bilan izohlanadi?",
+    a: "Spiral"
+},
+
+{
+    q: "Axborotning haddan tashqari ko‘pligi natijasida yuzaga keladigan hissiy holat?",
+    a: "Tashvish"
+},
+
+{
+    q: "Davlat xizmatchilarining shaxsiy manfaatdan ustun turadigan asosiy prinsipi qanday ataladi?",
+    a: "Xolislik"
+},
+
+{
+    q: "Axborot tarqatishdan oldin uning to‘g‘riligini ikki marta ko‘rish tamoyili qanday ataladi?",
+    a: "Tekshirish"
+}
+];
+
+let used = [];
+let current = -1;
+let score = 0;
+let spinning = false;
+
+const numbers = document.getElementById("numbers");
+
+for(let i = 0; i < 18; i++){
+
+    const btn = document.createElement("button");
+
+    btn.className = "number";
+    btn.textContent = i + 1;
+    btn.id = "num" + i;
+
+    btn.onclick = function(){
+        if(!used.includes(i) && !spinning){
+            showQuestion(i);
+        }
+    };
+
+    numbers.appendChild(btn);
+}
+
+function normalize(text){
+
+    return text
+        .toLowerCase()
+        .trim()
+        .replace(/[’'`]/g, "")
+        .replace(/\s+/g, "");
+
+}
+function spin(){
+
+    if(spinning) return;
+
+    if(used.length >= questions.length){
+        finishGame();
+        return;
+    }
+
+    spinning = true;
+
+    const spinBtn = document.getElementById("spinBtn");
+    const resultNumber = document.getElementById("resultNumber");
+
+    spinBtn.disabled = true;
+
+    let count = 0;
+
+    const timer = setInterval(function(){
+
+        let random;
+
+        do {
+            random = Math.floor(Math.random() * 18);
+        } while(used.includes(random));
+
+        resultNumber.textContent = random + 1;
+
+        document.querySelectorAll(".number").forEach(function(btn){
+            btn.classList.remove("active");
+        });
+
+        document.getElementById("num" + random)
+            .classList.add("active");
+
+        count++;
+
+        if(count >= 20){
+
+            clearInterval(timer);
+
+            setTimeout(function(){
+
+                let finalNumber;
+
+                do {
+                    finalNumber = Math.floor(Math.random() * 18);
+                } while(used.includes(finalNumber));
+
+                used.push(finalNumber);
+                current = finalNumber;
+
+                document.querySelectorAll(".number").forEach(function(btn){
+                    btn.classList.remove("active");
+                });
+
+                document.getElementById("num" + finalNumber)
+                    .classList.add("active");
+
+                document.getElementById("num" + finalNumber)
+                    .classList.add("used");
+
+                resultNumber.textContent = finalNumber + 1;
+
+                showQuestion(finalNumber);
+
+                spinning = false;
+                spinBtn.disabled = false;
+
+            }, 300);
+        }
+
+    }, 80);
+}
+
+
+function showQuestion(index){
+
+    current = index;
+
+    const questionBox = document.getElementById("questionBox");
+    const question = document.getElementById("question");
+    const cells = document.getElementById("cells");
+    const message = document.getElementById("message");
+
+    questionBox.style.display = "block";
+
+    question.textContent =
+        (index + 1) + "-savol: " + questions[index].q;
+
+    cells.innerHTML = "";
+    message.textContent = "";
+
+    const answer = questions[index].a;
+
+    for(let i = 0; i < answer.length; i++){
+
+        if(answer[i] === " "){
+            const space = document.createElement("span");
+
+            space.style.width = "12px";
+            space.style.display = "inline-block";
+
+            cells.appendChild(space);
+
+        } else {
+
+            const input = document.createElement("input");
+
+            input.type = "text";
+            input.maxLength = 1;
+            input.className = "letter";
+
+            input.oninput = function(){
+
+                this.value = this.value
+                    .replace(/[^a-zA-ZА-Яа-яЁёЎўҚқҒғҲҳ]/g, "");
+
+                if(this.value){
+                    const next = this.nextElementSibling;
+
+                    if(next && next.tagName === "INPUT"){
+                        next.focus();
+                    }
+                }
+            };
+
+            cells.appendChild(input);
+        }
+    }
+
+    const firstInput = cells.querySelector("input");
+
+    if(firstInput){
+        setTimeout(function(){
+            firstInput.focus();
+        }, 100);
+    }
+}
+
+
+function checkAnswer(){
+
+    if(current === -1) return;
+
+    const inputs =
+        document.querySelectorAll("#cells input");
+
+    let userAnswer = "";
+
+    inputs.forEach(function(input){
+        userAnswer += input.value;
+    });
+
+    const correctAnswer =
+        normalize(questions[current].a);
+
+    const message =
+        document.getElementById("message");
+
+    if(normalize(userAnswer) === correctAnswer){
+
+        inputs.forEach(function(input){
+            input.classList.remove("wrong");
+            input.classList.add("correct");
+        });
+
+        message.textContent = "✅ To‘g‘ri javob!";
+        message.style.color = "#16a34a";
+
+        score++;
+
+        document.getElementById("score").textContent = score;
+
+        setTimeout(function(){
+
+            document.getElementById("questionBox")
+                .style.display = "none";
+
+            if(used.length >= questions.length){
+                finishGame();
+            }
+
+        }, 1200);
+
+    } else {
+
+        inputs.forEach(function(input){
+            input.classList.remove("correct");
+            input.classList.add("wrong");
+        });
+
+        message.textContent = "❌ Noto‘g‘ri javob!";
+        message.style.color = "#dc2626";
+    }
+}
+
+
+function finishGame(){
+
+    document.getElementById("questionBox")
+        .style.display = "none";
+
+    document.getElementById("spinBtn")
+        .style.display = "none";
+
+    document.getElementById("finish")
+        .style.display = "block";
+
+    document.getElementById("finalScore")
+        .textContent = score + " / 18";
+
+    document.getElementById("resultNumber")
+        .textContent = "🏆";
+}
+
+</script>
+
+</body>
+</html>
